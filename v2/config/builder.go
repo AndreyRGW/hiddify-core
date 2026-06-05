@@ -17,7 +17,6 @@ import (
 	C "github.com/sagernet/sing-box/constant"
 	sdns "github.com/sagernet/sing-box/dns"
 	"github.com/sagernet/sing-box/option"
-	"github.com/sagernet/sing/common/auth"
 	"github.com/sagernet/sing/common/json/badoption"
 	"github.com/sagernet/wireguard-go/hiddify"
 )
@@ -496,14 +495,6 @@ func setInbound(options *option.Options, hopt *HiddifyOptions) {
 	for _, bind := range binds {
 		addr := badoption.Addr(netip.MustParseAddr(bind))
 
-		var inboundUsers []auth.User
-		if hopt.InboundOptions.MixedInboundUsername != "" {
-			inboundUsers = []auth.User{{
-				Username: hopt.InboundOptions.MixedInboundUsername,
-				Password: hopt.InboundOptions.MixedInboundPassword,
-			}}
-		}
-
 		options.Inbounds = append(
 			options.Inbounds,
 			option.Inbound{
@@ -513,13 +504,7 @@ func setInbound(options *option.Options, hopt *HiddifyOptions) {
 					ListenOptions: option.ListenOptions{
 						Listen:     &addr,
 						ListenPort: hopt.MixedPort,
-						// InboundOptions: option.InboundOptions{
-						// 	SniffEnabled:             true,
-						// 	SniffOverrideDestination: true,
-						// 	DomainStrategy:           inboundDomainStrategy,
-						// },
 					},
-					Users:          inboundUsers,
 					SetSystemProxy: hopt.SetSystemProxy,
 				},
 			},
