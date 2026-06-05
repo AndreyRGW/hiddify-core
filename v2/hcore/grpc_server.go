@@ -174,6 +174,9 @@ var (
 
 // StartGrpcServerByMode starts a gRPC server on the specified address with mTLS.
 func StartGrpcServerByMode(listenAddressG string, mode SetupMode) (*grpc.Server, error) {
+	mu.Lock()
+	defer mu.Unlock()
+
 	// Validate the listen address
 	if !strings.Contains(listenAddressG, ":") {
 		return nil, fmt.Errorf("invalid listen address (no port): %s", listenAddressG)

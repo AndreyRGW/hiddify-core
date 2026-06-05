@@ -20,7 +20,10 @@ func InitHiddifyService() error {
 }
 
 func (s *CoreService) Setup(ctx context.Context, req *SetupRequest) (*hcommon.Response, error) {
-	if grpcServer[req.Mode] != nil {
+	mu.Lock()
+	existing := grpcServer[req.Mode]
+	mu.Unlock()
+	if existing != nil {
 		return &hcommon.Response{Code: hcommon.ResponseCode_OK, Message: ""}, nil
 	}
 	err := Setup(req, nil)
