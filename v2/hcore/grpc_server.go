@@ -174,9 +174,6 @@ var (
 
 // StartGrpcServerByMode starts a gRPC server on the specified address with mTLS.
 func StartGrpcServerByMode(listenAddressG string, mode SetupMode) (*grpc.Server, error) {
-	mu.Lock()
-	defer mu.Unlock()
-
 	// Validate the listen address
 	if !strings.Contains(listenAddressG, ":") {
 		return nil, fmt.Errorf("invalid listen address (no port): %s", listenAddressG)
@@ -191,14 +188,29 @@ func StartGrpcServerByMode(listenAddressG string, mode SetupMode) (*grpc.Server,
 		return nil, fmt.Errorf("port %s is already in use", portStr)
 	}
 	// Fetch the server private key and public key from the database
-	if _, exists := grpcServer[mode]; exists {
+	mu.Lock()
+	_, exists := grpcServer[mode]
+	mu.Unlock()
+	if exists {
 		Log(LogLevel_WARNING, LogType_CORE, "grpcServer already started")
-		return grpcServer[mode], nil
+		mu.Lock()
+		srv := grpcServer[mode]
+		mu.Unlock()
+		return srv, nil
 	}
 
+	var srv *grpc.Server
+
+	mu.Lock()
 	if mode == SetupMode_GRPC_BACKGROUND_INSECURE || mode == SetupMode_GRPC_NORMAL_INSECURE {
-		grpcServer[mode] = grpc.NewServer()
+		srv = grpc.NewServer()
+		grpcServer[mode] = srv
 	} else {
+		// server will be created below, placeholder for now
+	}
+	mu.Unlock()
+
+	if mode != SetupMode_GRPC_BACKGROUND_INSECURE && mode != SetupMode_GRPC_NORMAL_INSECURE {
 		table := db.GetTable[hcommon.AppSettings]()
 		Log(LogLevel_DEBUG, LogType_CORE, table)
 		grpcServerPrivateKey, err := table.Get("grpc_server_private_key")
@@ -238,11 +250,15 @@ func StartGrpcServerByMode(listenAddressG string, mode SetupMode) (*grpc.Server,
 
 		// Create a new gRPC server with TLS credentials
 		creds := credentials.NewTLS(tlsConfig)
-		grpcServer[mode] = grpc.NewServer(grpc.Creds(creds))
+		srv = grpc.NewServer(grpc.Creds(creds))
+
+		mu.Lock()
+		grpcServer[mode] = srv
+		mu.Unlock()
 	}
-	// Register your gRPC service here
-	RegisterCoreServer(grpcServer[mode], &CoreService{})
-	hello.RegisterHelloServer(grpcServer[mode], &hello.HelloService{})
+
+	RegisterCoreServer(srv, &CoreService{})
+	hello.RegisterHelloServer(srv, &hello.HelloService{})
 	// Listen on the provided address
 	lis, err := net.Listen("tcp", listenAddressG)
 	if err != nil {
@@ -258,13 +274,13 @@ func StartGrpcServerByMode(listenAddressG string, mode SetupMode) (*grpc.Server,
 			Log(LogLevel_FATAL, LogType_CORE, err.Error())
 			<-time.After(5 * time.Second)
 		})
-		if err := grpcServer[mode].Serve(lis); err != nil {
+		if err := srv.Serve(lis); err != nil {
 			Log(LogLevel_DEBUG, LogType_CORE, fmt.Sprintf("failed to serve: %v\n", err))
 		}
 		Log(LogLevel_DEBUG, LogType_CORE, "Server stopped")
 	}()
 
-	return grpcServer[mode], nil
+	return srv, nil
 }
 
 // GetGrpcServerPublicKey returns the gRPC server's public key.
