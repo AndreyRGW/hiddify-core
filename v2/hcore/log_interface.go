@@ -1,8 +1,6 @@
 package hcore
 
 import (
-	"os"
-
 	"github.com/hiddify/hiddify-core/v2/service_manager"
 	daemon "github.com/sagernet/sing-box/daemon"
 	"github.com/sagernet/sing-box/log"
@@ -29,14 +27,6 @@ func (h *LogInterface) SystemProxyStatus() (*daemon.SystemProxyStatus, error) {
 }
 func (h *LogInterface) SetSystemProxyEnabled(enabled bool) error {
 	return nil
-}
-
-func (h *LogInterface) TriggerNativeCrash() error {
-	return nil
-}
-
-func (h *LogInterface) ConnectSSHAgent() (int32, error) {
-	return 0, os.ErrInvalid
 }
 
 func (h *LogInterface) WriteDebugMessage(message string) {

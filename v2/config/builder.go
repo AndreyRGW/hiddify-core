@@ -17,6 +17,7 @@ import (
 	C "github.com/sagernet/sing-box/constant"
 	sdns "github.com/sagernet/sing-box/dns"
 	"github.com/sagernet/sing-box/option"
+	"github.com/sagernet/sing/common/auth"
 	"github.com/sagernet/sing/common/json/badoption"
 	"github.com/sagernet/wireguard-go/hiddify"
 )
@@ -189,7 +190,7 @@ func setOutbounds(options *option.Options, input *option.Options, opt *HiddifyOp
 			return fmt.Errorf("failed to generate warp config: %v", err)
 		}
 		out.Tag = WARPConfigTag
-		if opts, ok := out.Options.(*option.WARPEndpointOptions); ok {
+		if opts, ok := out.Options.(*option.WireGuardWARPEndpointOptions); ok {
 			if opt.Warp.Mode == "warp_over_proxy" {
 				opts.Detour = OutboundSelectTag
 				opts.MTU = 1280
@@ -214,7 +215,7 @@ func setOutbounds(options *option.Options, input *option.Options, opt *HiddifyOp
 		}
 		if opt.Warp.EnableWarp {
 			if end.Type == C.TypeWARP {
-				if opts, ok := end.Options.(*option.WARPEndpointOptions); ok {
+				if opts, ok := end.Options.(*option.WireGuardWARPEndpointOptions); ok {
 					if opts.UniqueIdentifier == "p1" {
 						continue
 					}
@@ -347,11 +348,11 @@ func setOutbounds(options *option.Options, input *option.Options, opt *HiddifyOp
 					DialerOptions: option.DialerOptions{
 						TCPFastOpen: false,
 
-						// TLSFragment: option.TLSFragmentOptions{
-						// 	Enabled: true,
-						// 	Size:    opt.TLSTricks.FragmentSize,
-						// 	Sleep:   opt.TLSTricks.FragmentSleep,
-						// },
+						TLSFragment: option.TLSFragmentOptions{
+							Enabled: true,
+							Size:    opt.TLSTricks.FragmentSize,
+							Sleep:   opt.TLSTricks.FragmentSleep,
+						},
 					},
 				},
 			},
@@ -495,6 +496,14 @@ func setInbound(options *option.Options, hopt *HiddifyOptions) {
 	for _, bind := range binds {
 		addr := badoption.Addr(netip.MustParseAddr(bind))
 
+		var inboundUsers []auth.User
+		if hopt.InboundOptions.MixedInboundUsername != "" {
+			inboundUsers = []auth.User{{
+				Username: hopt.InboundOptions.MixedInboundUsername,
+				Password: hopt.InboundOptions.MixedInboundPassword,
+			}}
+		}
+
 		options.Inbounds = append(
 			options.Inbounds,
 			option.Inbound{
@@ -510,6 +519,7 @@ func setInbound(options *option.Options, hopt *HiddifyOptions) {
 						// 	DomainStrategy:           inboundDomainStrategy,
 						// },
 					},
+					Users:          inboundUsers,
 					SetSystemProxy: hopt.SetSystemProxy,
 				},
 			},
