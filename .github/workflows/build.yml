@@ -136,7 +136,7 @@ jobs:
           check-latest: false
 
       - name: Clean Go cache
-        run: go clean -cache
+        run: go clean -cache -modcache && rm -rf ~/.cache/gomobile
 
       - name: Setup Java
         if: startsWith(matrix.job.target,'android')
