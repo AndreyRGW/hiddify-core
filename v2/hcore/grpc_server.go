@@ -47,7 +47,10 @@ func Setup(params *SetupRequest, platformInterface libbox.PlatformInterface) err
 			http.ListenAndServe("localhost:6060", nil)
 		}()
 	}
-	if grpcServer[params.Mode] != nil {
+	mu.Lock()
+	existing := grpcServer[params.Mode]
+	mu.Unlock()
+	if existing != nil {
 		Log(LogLevel_WARNING, LogType_CORE, "grpcServer already started")
 		return nil
 	}
@@ -191,14 +194,19 @@ func StartGrpcServerByMode(listenAddressG string, mode SetupMode) (*grpc.Server,
 	mu.Unlock()
 	if exists {
 		Log(LogLevel_WARNING, LogType_CORE, "grpcServer already started")
-		return grpcServer[mode], nil
+		mu.Lock()
+		srv := grpcServer[mode]
+		mu.Unlock()
+		return srv, nil
 	}
 
 	var srv *grpc.Server
 
 	if mode == SetupMode_GRPC_BACKGROUND_INSECURE || mode == SetupMode_GRPC_NORMAL_INSECURE {
 		srv = grpc.NewServer()
+		mu.Lock()
 		grpcServer[mode] = srv
+		mu.Unlock()
 	} else {
 		table := db.GetTable[hcommon.AppSettings]()
 		Log(LogLevel_DEBUG, LogType_CORE, table)
@@ -240,7 +248,9 @@ func StartGrpcServerByMode(listenAddressG string, mode SetupMode) (*grpc.Server,
 		// Create a new gRPC server with TLS credentials
 		creds := credentials.NewTLS(tlsConfig)
 		srv = grpc.NewServer(grpc.Creds(creds))
+		mu.Lock()
 		grpcServer[mode] = srv
+		mu.Unlock()
 	}
 
 	RegisterCoreServer(srv, &CoreService{})
