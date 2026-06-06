@@ -135,6 +135,9 @@ jobs:
           go-version-file: 'go.mod'
           check-latest: false
 
+      - name: Clean Go cache
+        run: go clean -cache
+
       - name: Setup Java
         if: startsWith(matrix.job.target,'android')
         uses: actions/setup-java@v3
