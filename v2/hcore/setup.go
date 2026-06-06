@@ -2,10 +2,15 @@ package hcore
 
 import (
 	"context"
+	"os"
 
 	"github.com/hiddify/hiddify-core/v2/hcommon"
 	"github.com/hiddify/hiddify-core/v2/service_manager"
 )
+
+func init() {
+	os.WriteFile(os.TempDir()+"/hcore_init.txt", []byte("init_ok\n"), 0644)
+}
 
 var (
 	sWorkingPath          string

@@ -81,7 +81,7 @@ func StartService(ctx context.Context, in *StartRequest) (coreResponse *CoreInfo
 		coreResponse, err = errorWrapper(MessageType_UNEXPECTED_ERROR, recovered_err)
 	})
 	// debug: write boot marker
-	os.WriteFile("/data/data/ru.bestreserve.rezervpn/files/started.txt", []byte("started\n"), 0644)
+	os.WriteFile(os.TempDir()+"/hboot.txt", []byte("started\n"), 0644)
 	static.lock.Lock()
 	defer static.lock.Unlock()
 
