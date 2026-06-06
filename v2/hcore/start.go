@@ -3,7 +3,9 @@ package hcore
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
+	"syscall"
 	"time"
 
 	"github.com/hiddify/hiddify-core/v2/config"
@@ -79,6 +81,12 @@ func StartService(ctx context.Context, in *StartRequest) (coreResponse *CoreInfo
 	defer config.DeferPanicToError("startmobile", func(recovered_err error) {
 		coreResponse, err = errorWrapper(MessageType_UNEXPECTED_ERROR, recovered_err)
 	})
+	// Redirect stderr to a file for debugging fatal errors
+	_ = os.MkdirAll(sWorkingPath+"/data", 0755)
+	stderrFile, _ := os.OpenFile(sWorkingPath+"/data/stderr.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if stderrFile != nil {
+		syscall.Dup2(int(stderrFile.Fd()), 2)
+	}
 	static.lock.Lock()
 	defer static.lock.Unlock()
 
