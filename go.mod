@@ -275,10 +275,11 @@ replace github.com/ameshkov/dnscrypt/v2 => github.com/shtorm-7/dnscrypt/v2 v2.4.
 
 replace github.com/hiddify/ray2sing => ./ray2sing
 
-replace github.com/sagernet/sing-box => github.com/SagerNet/sing-box@83b73048ff772b919af18653b78ffeaa2d48b66e
+replace github.com/sagernet/sing-box => ./hiddify-sing-box
 
-# replace github.com/sagernet/wireguard-go => ./hiddify-sing-box/replace/wireguard-go
-# replace github.com/sagernet/tailscale => ./hiddify-sing-box/replace/tailscale
+replace github.com/sagernet/wireguard-go => ./hiddify-sing-box/replace/wireguard-go
+
+replace github.com/sagernet/tailscale => ./hiddify-sing-box/replace/tailscale
 
 replace github.com/Psiphon-Labs/quic-go => ./hiddify-sing-box/replace/psiphon-quic-go
 
