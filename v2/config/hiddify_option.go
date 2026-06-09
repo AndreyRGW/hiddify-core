@@ -113,7 +113,7 @@ func DefaultHiddifyOptions() *HiddifyOptions {
 		DNSOptions: DNSOptions{
 			RemoteDnsAddress:        "1.1.1.1",
 			RemoteDnsDomainStrategy: option.DomainStrategy(dns.DomainStrategyAsIS),
-			DirectDnsAddress:        "1.1.1.1",
+			DirectDnsAddress: "local",
 			DirectDnsDomainStrategy: option.DomainStrategy(dns.DomainStrategyAsIS),
 			IndependentDNSCache:     false,
 			EnableFakeDNS:           false,
@@ -126,7 +126,7 @@ func DefaultHiddifyOptions() *HiddifyOptions {
 			TProxyPort:     12335,
 			RedirectPort:   12336,
 			DirectPort:     12337,
-			MTU:            9000,
+			MTU: 1500,
 			StrictRoute:    true,
 			TUNStack:       "mixed",
 		},
