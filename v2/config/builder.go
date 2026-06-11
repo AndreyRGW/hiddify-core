@@ -442,10 +442,10 @@ func setInbound(options *option.Options, hopt *HiddifyOptions) {
 	if hopt.EnableTun {
 
 		opts := option.TunInboundOptions{
-			Stack:       hopt.TUNStack,
-			MTU:         hopt.MTU,
-			AutoRoute:   true,
-			StrictRoute: hopt.StrictRoute,
+				Stack:       hopt.TUNStack,
+				MTU:         hopt.MTU,
+				AutoRoute:   !C.IsAndroid,
+				StrictRoute: hopt.StrictRoute,
 
 			// EndpointIndependentNat: true,
 			// GSO:                    runtime.GOOS != "windows",
